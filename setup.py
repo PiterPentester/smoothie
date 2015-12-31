@@ -38,6 +38,11 @@ setup(
     include_package_data=True,
     install_requires=requirements,
     license="ISCL",
+    entry_points={
+        'console_scripts': [
+            'smoothie=smoothie.smoothie:main',
+        ],
+    },
     zip_safe=False,
     keywords='smoothie',
     classifiers=[

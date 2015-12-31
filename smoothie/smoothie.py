@@ -28,14 +28,14 @@ import pymongo
 import logging
 
 APP = Flask(__name__)
-logging.basicConfig()
+logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(name=__name__)
 MONGOCLIENT = pymongo.MongoClient()
 DB = MONGOCLIENT.smoothie.attacks
 RQ_QUEUE = Queue(connection=Redis(), name="plugins")
 
 
-@APP.route('/create/<plugin>/<mongo_id>', methods=["POST"])
+@APP.route('/plugin/<plugin>/<mongo_id>', methods=["POST"])
 def create(plugin, mongo_id):
     """
         .. http:put:: /create/(str:plugin)
@@ -54,8 +54,9 @@ def create(plugin, mongo_id):
     job = RQ_QUEUE.enqueue_call(func="smoothie.plugins.{}".format(plugin))
     job.meta = dict(request.form)
     job.meta['mongo_id'] = mongo_id
+    job.meta['run'] = True
     job.save()
-    return job.id
+    return str(job.id)
 
 
 @APP.route('/create/<attack_type>', methods=["POST"])
@@ -82,10 +83,10 @@ def create_attack(attack_type):
                 ]
             }
     """
-    return DB.insert_one({
+    return str(DB.insert_one({
         'type': attack_type,
         'targets': []
-    }).inserted_id
+    }).inserted_id)
 
 
 def main():
