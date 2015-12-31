@@ -23,7 +23,7 @@
 
 from rq import Queue
 from redis import Redis
-from flask import Flask
+from flask import Flask, request
 import pymongo
 import logging
 
@@ -51,7 +51,11 @@ def create(plugin, mongo_id):
         meta['mongo_id'] (wich SHOULD be the ID of
         a current working attack)
     """
-    return RQ_QUEUE.enqueue_call(func="smoothie.plugins.{}".format(plugin))
+    job = RQ_QUEUE.enqueue_call(func="smoothie.plugins.{}".format(plugin))
+    job.meta = dict(request.form)
+    job.meta['mongo_id'] = mongo_id
+    job.save()
+    return job.id
 
 
 @APP.route('/create/<attack_type>', methods=["POST"])
