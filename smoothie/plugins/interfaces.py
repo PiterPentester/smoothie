@@ -30,5 +30,5 @@ def main():
             ifaces = [a for a in Wireless().interfaces()
                       if not a.startswith('smoothie')]
 
-            DB.update({'_id': mongo_id}, {'wifi_list': ifaces})
+            DB.update({'_id': mongo_id}, {'$set': {'wifi_list': ifaces}})
             time.sleep(30)
