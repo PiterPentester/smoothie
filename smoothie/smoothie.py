@@ -35,6 +35,11 @@ DB = MONGOCLIENT.smoothie.attacks
 RQ_QUEUE = Queue(connection=Redis(), name="plugins")
 
 
+@APP.route('/', methods=["GET"])
+def index():
+    return render_template("index.html")
+
+
 @APP.route('/plugin/<plugin>/<mongo_id>', methods=["POST"])
 def create(plugin, mongo_id):
     """
