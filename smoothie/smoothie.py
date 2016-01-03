@@ -23,7 +23,8 @@
 
 from rq import Queue
 from redis import Redis
-from flask import Flask, request
+from flask import Flask, request, render_template
+from bson import ObjectId
 import pymongo
 import logging
 
@@ -40,8 +41,8 @@ def index():
     return render_template("index.html")
 
 
-@APP.route('/plugin/<plugin>/<mongo_id>', methods=["POST"])
-def create(plugin, mongo_id):
+@APP.route('/plugin/<what>/<plugin>/<mongo_id>', methods=["POST"])
+def create(what, plugin, mongo_id):
     """
         .. http:put:: /create/(str:plugin)
 
@@ -56,12 +57,16 @@ def create(plugin, mongo_id):
         meta['mongo_id'] (wich SHOULD be the ID of
         a current working attack)
     """
-    job = RQ_QUEUE.enqueue_call(func="smoothie.plugins.{}".format(plugin))
-    job.meta = dict(request.form)
-    job.meta['mongo_id'] = mongo_id
-    job.meta['run'] = True
-    job.save()
-    return str(job.id)
+    if what == "start":
+        job = RQ_QUEUE.enqueue_call(func="smoothie.plugins.{}".format(plugin))
+        job.meta = dict(request.form)
+        job.meta['mongo_id'] = mongo_id
+        job.meta['run'] = True
+        job.save()
+        return str(job.id)
+    elif what == "stop":
+        DB.update({'_id': ObjectId(mongo_id)}, {'$set': {'run': False}})
+        return True
 
 
 @APP.route('/create/<attack_type>', methods=["POST"])
