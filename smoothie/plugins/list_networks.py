@@ -9,6 +9,7 @@ from rq import use_connection, get_current_job
 from bson import ObjectId
 import subprocess
 import tempfile
+import logging
 import pymongo
 import psutil
 import time
@@ -65,6 +66,14 @@ def start_airodump(mongo_document):
 
 
 def get_target(line):
+    """
+        Returns a formatted target (client or ap)
+        Ignoring invalid lines.
+    """
+    stripped = line.strip()
+    if stripped.startswith("BSSID") or stripped.startswith("Station"):
+        return False
+
     if len(line) == 7:
         return {
             'type': 'client',
@@ -91,7 +100,9 @@ def get_target(line):
 
 def main():
     """
-        Adds networks as a type of client.
+        - Put the selected network on monitor mode
+        - Scan for networks
+        - Add networks and clients into target array.
     """
     job = get_current_job()
 
@@ -115,18 +126,19 @@ def main():
         if start_airodump(mongo_document):
             tmp = tempfile.NamedTemporaryFile(delete=False)
             try:
-                os.remove("{}-01.csv".format(tmp))
+                os.remove("{}-01.csv".format(tmp.name))
             except:
                 pass
 
             proc = subprocess.Popen(['airodump-ng', moniface, '-w', tmp.name,
                                      '--output-format', 'csv'],
-                                    stdout=subprocess.PIPE, shell=True)
+                                    stderr=subprocess.PIPE,
+                                    stdout=subprocess.PIPE)
 
             DB.update({'_id': mongo_id}, {'$set': {
                 'airodump_pid': proc.pid}})
         try:
-            with open("{}-01.csv".format(tmp), 'rb') as csvfile:
+            with open("{}-01.csv".format(tmp.name), 'rb') as csvfile:
                 reader = csv.reader(csvfile)
                 targets = []
                 for target in reader:
@@ -138,5 +150,6 @@ def main():
 
                 DB.update({'_id': mongo_id},
                           {'$set': {'targets': res}})
-        except:
-            pass
+        except Exception as err:
+            logging.exception(err)
+            time.sleep(1)
