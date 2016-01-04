@@ -5,151 +5,133 @@
     List networks
 """
 
-from rq import use_connection, get_current_job
-from bson import ObjectId
+from smoothie.plugins.base import SmoothiePlugin
 import subprocess
 import tempfile
 import logging
-import pymongo
 import psutil
 import time
 import csv
 import os
 import re
 
-MONGOCLIENT = pymongo.MongoClient()
-DB = MONGOCLIENT.smoothie.attacks
 
-use_connection()
-
-
-def monitor_mode(wifi):
+class ListNetworks(SmoothiePlugin):
     """
-        Gets a wireless interface and creates
-        a smoothieN monitor interface using airmon-ng.
+        List networks.
+        This plugin:
+            - Puts the selected network interface in monitor mode
+            - Retrieves the monitor interface
+            - Starts an analysis with airodump-ng in channel hoping
+              mode
+            - Teardown clears interface and kills airodump
     """
+    def get_moniface(self):
+        """
+            Get monitor interface.
+            If it's already done, don't re-run
+        """
 
-    env = os.environ.copy()
-    env['AIRMON_PREFIX'] = 'smoothie'
-    ret = subprocess.check_output(
-        ['airmon-ng', 'start', wifi],
-        env=env)
+        if 'monitor' not in self.mongo_document:
+            wifi = self.mongo_document['wifi']
+            env = os.environ.copy()
+            env['MON_PREFIX'] = 'smoothie'
+            ret = subprocess.check_output(
+                ['airmon-ng', 'start', wifi],
+                env=env)
+            for asg in re.finditer(r'(.*) on (.*)\)', ret):
+                return asg.group(2)
+        else:
+            return self.mongo_document['monitor']
 
-    for asg in re.finditer(r'(.*) on (.*)\)', ret):
-        return asg.group(2)
+    def start_airodump(self):
+        """
+            Checks if airodump-ng should be started.
+        """
+        if 'airodump_pid' in self.mongo_document:
+            return not psutil.pid_exists(self.mongo_document['airodump_pid'])
+        else:
+            return True
 
+    def callback(self):
+        """
+            - Put the selected network on monitor mode
+            - Scan for networks
+            - Add networks and clients into target array.
+        """
 
-def get_moniface(mongo_document):
-    """
-        Get monitor interface.
-        If it's already done, don't re-run
-    """
-    if 'monitor' not in mongo_document:
-        return monitor_mode(mongo_document['wifi'])
-    else:
-        return mongo_document['monitor']
+        def get_target(line):
+            """
+                Returns a formatted target (client or ap)
+                Ignoring invalid lines.
+            """
+            stripped = line[0].strip()
+            if stripped.startswith("BSSID") or stripped.startswith("Station"):
+                return False
 
+            if len(line) == 7:
+                return {
+                    'type': 'client',
+                    'ssid': line[0],
+                    'power': line[3],
+                    'bssid': line[5],
+                    'probes': line[-1].split(',')
+                }
+            elif len(line) == 15:
+                return {
+                    'type': 'access_point',
+                    'bssid': line[0],
+                    'channel': line[3],
+                    'privacy': line[5],
+                    'cipher': line[6],
+                    'auth': line[7],
+                    'power': line[8],
+                    'essid': line[13],
+                    'key': line[14]
+                }
+            else:
+                return False
 
-def get_mongo_document(mongo_id):
-    """ reload mongo document """
-    return DB.find_one({'_id': mongo_id})
-
-
-def start_airodump(mongo_document):
-    """
-        Checks if airodump-ng should be started.
-    """
-    if 'airodump_pid' in mongo_document:
-        return not psutil.pid_exists(mongo_document['airodump_pid'])
-    else:
-        return True
-
-
-def get_target(line):
-    """
-        Returns a formatted target (client or ap)
-        Ignoring invalid lines.
-    """
-    stripped = line.strip()
-    if stripped.startswith("BSSID") or stripped.startswith("Station"):
-        return False
-
-    if len(line) == 7:
-        return {
-            'type': 'client',
-            'ssid': line[0],
-            'power': line[3],
-            'bssid': line[5],
-            'probes': line[-1].split(',')
-        }
-    elif len(line) == 15:
-        return {
-            'type': 'access_point',
-            'bssid': line[0],
-            'channel': line[3],
-            'privacy': line[5],
-            'cipher': line[6],
-            'auth': line[7],
-            'power': line[8],
-            'essid': line[13],
-            'key': line[14]
-        }
-    else:
-        return False
-
-
-def main():
-    """
-        - Put the selected network on monitor mode
-        - Scan for networks
-        - Add networks and clients into target array.
-    """
-    job = get_current_job()
-
-    while job.meta['run']:
-        job = get_current_job()
-        mongo_id = ObjectId(job.meta['mongo_id'])
-        mongo_document = DB.find_one({'_id': mongo_id})
-
-        while 'wifi' not in mongo_document:
+        while 'wifi' not in self.mongo_document:
             # Wait for the user to choose a wifi network.
-            time.sleep(1)
-            mongo_document = get_mongo_document(mongo_id)
+            time.sleep(10)
 
         # Get monitor interface
-        moniface = get_moniface(mongo_document)
+        moniface = self.get_moniface()
 
-        DB.update({'_id': mongo_id}, {'$set': {'monitor': moniface}})
-        mongo_document = get_mongo_document(mongo_id)
+        self.update({'$set': {'monitor': moniface}})
 
         # Now we list the clients
-        if start_airodump(mongo_document):
-            tmp = tempfile.NamedTemporaryFile(delete=False)
-            try:
-                os.remove("{}-01.csv".format(tmp.name))
-            except:
-                pass
+        if self.start_airodump():
+            self.tmp = tempfile.NamedTemporaryFile(delete=False)
 
-            proc = subprocess.Popen(['airodump-ng', moniface, '-w', tmp.name,
+            proc = subprocess.Popen(['airodump-ng', moniface, '-w',
+                                     self.tmp.name,
                                      '--output-format', 'csv'],
                                     stderr=subprocess.PIPE,
                                     stdout=subprocess.PIPE)
 
-            DB.update({'_id': mongo_id}, {'$set': {
-                'airodump_pid': proc.pid}})
+            self.update({'$set': {'airodump_pid': proc.pid}})
         try:
-            with open("{}-01.csv".format(tmp.name), 'rb') as csvfile:
+            with open("{}-01.csv".format(self.tmp.name), 'rb') as csvfile:
                 reader = csv.reader(csvfile)
                 targets = []
                 for target in reader:
-                    targets.append(get_target(target))
-
+                    if target:
+                        targets.append(get_target(target))
                 # Esto no es un diccionario es una lista!!!
-                targets_b = mongo_document['targets']
+                targets_b = self.mongo_document['targets']
                 res = targets_b + [x for x in targets if x not in targets_b]
-
-                DB.update({'_id': mongo_id},
-                          {'$set': {'targets': res}})
+                self.update({'$set': {'targets': res}})
         except Exception as err:
             logging.exception(err)
             time.sleep(1)
+
+    def teardown(self):
+        """
+            Cleanses airodump-ng process and brings monitor interface down
+        """
+        psutil.Process(self.mongo_document['airodump_pid']).kill()
+        subprocess.check_call(['airmon-ng', 'stop',
+                               self.mongo_document['monitor']])
+        return True
