@@ -65,6 +65,9 @@ class ListNetworks(SmoothiePlugin):
                 Returns a formatted target (client or ap)
                 Ignoring invalid lines.
             """
+            if not line:
+                return False
+
             stripped = line[0].strip()
             if stripped.startswith("BSSID") or stripped.startswith("Station"):
                 return False
@@ -117,8 +120,9 @@ class ListNetworks(SmoothiePlugin):
                 reader = csv.reader(csvfile)
                 targets = []
                 for target in reader:
-                    if target:
-                        targets.append(get_target(target))
+                    target_ = get_target(target)
+                    if target_:
+                        targets.append()
                 # Esto no es un diccionario es una lista!!!
                 targets_b = self.mongo_document['targets']
                 res = targets_b + [x for x in targets if x not in targets_b]
