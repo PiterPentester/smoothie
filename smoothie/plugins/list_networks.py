@@ -16,6 +16,42 @@ import os
 import re
 
 
+def get_target(line):
+    """
+        Returns a formatted target (client or ap)
+        Ignoring invalid lines.
+    """
+    if not line:
+        return False
+
+    stripped = line[0].strip()
+    if stripped.startswith("BSSID") or stripped.startswith("Station"):
+        return False
+
+    if len(line) == 7:
+        return {
+            'type': 'client',
+            'ssid': line[0].strip(),
+            'power': line[3].strip(),
+            'bssid': line[5].strip(),
+            'probes': [a.strip() for a in line[-1].split() if a]
+        }
+    elif len(line) == 15:
+        return {
+            'type': 'access_point',
+            'bssid': line[0].strip(),
+            'channel': line[3].strip(),
+            'privacy': line[5].strip(),
+            'cipher': line[6].strip(),
+            'auth': line[7].strip(),
+            'power': line[8].strip(),
+            'essid': line[13].strip(),
+            'key': line[14].strip()
+        }
+    else:
+        return False
+
+
 class ListNetworks(SmoothiePlugin):
     """
         List networks.
@@ -59,42 +95,6 @@ class ListNetworks(SmoothiePlugin):
             - Scan for networks
             - Add networks and clients into target array.
         """
-
-        def get_target(line):
-            """
-                Returns a formatted target (client or ap)
-                Ignoring invalid lines.
-            """
-            if not line:
-                return False
-
-            stripped = line[0].strip()
-            if stripped.startswith("BSSID") or stripped.startswith("Station"):
-                return False
-
-            if len(line) == 7:
-                return {
-                    'type': 'client',
-                    'ssid': line[0],
-                    'power': line[3],
-                    'bssid': line[5],
-                    'probes': line[-1].split(',')
-                }
-            elif len(line) == 15:
-                return {
-                    'type': 'access_point',
-                    'bssid': line[0],
-                    'channel': line[3],
-                    'privacy': line[5],
-                    'cipher': line[6],
-                    'auth': line[7],
-                    'power': line[8],
-                    'essid': line[13],
-                    'key': line[14]
-                }
-            else:
-                return False
-
         while 'wifi' not in self.mongo_document:
             # Wait for the user to choose a wifi network.
             time.sleep(10)
@@ -122,7 +122,7 @@ class ListNetworks(SmoothiePlugin):
                 for target in reader:
                     target_ = get_target(target)
                     if target_:
-                        targets.append()
+                        targets.append(target_)
                 # Esto no es un diccionario es una lista!!!
                 targets_b = self.mongo_document['targets']
                 res = targets_b + [x for x in targets if x not in targets_b]
