@@ -21,13 +21,13 @@
 
 """
 
-from rq import Queue
-from redis import Redis
 from flask import Flask, request, render_template
+from bson.json_util import dumps
 from bson import ObjectId
+from redis import Redis
+from rq import Queue
 import pymongo
 import logging
-import sys
 
 APP = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -66,6 +66,29 @@ def create(plugin, mongo_id):
     DB.update({'_id': ObjectId(mongo_id)},
               {'$set': {'run_{}'.format(str(job.id)): True}})
     return str(job.id)
+
+
+@APP.route('/data/<mongo_id>', methods=["GET"])
+def data_get(mongo_id):
+    """
+    .. http::post:: /data/(str:mongo_id)
+
+        Get a mongo document.
+    """
+
+    return dumps(DB.find_one({'_id': ObjectId(mongo_id)},
+                             {'$set': request.data}))
+
+
+@APP.route('/data/<mongo_id>', methods=["POST"])
+def data_post(mongo_id):
+    """
+    .. http::post:: /data/(str:mongo_id)
+
+        Modify a mongo document.
+    """
+    return DB.update({'_id': ObjectId(mongo_id)},
+                     {'$set': request.data})
 
 
 @APP.route('/stop_plugin/<mongo_id>/<job_id>', methods=["DELETE"])
