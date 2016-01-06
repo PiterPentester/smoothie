@@ -19,10 +19,10 @@ class SmoothiePlugin(object):
         callback call
     """
     def __init__(self):
-        self.mongo_id = False
-        while not self.mongo_id:
+        self.job = get_current_job()
+        while 'mongo_id' not in self.job.meta:
             self.job = get_current_job()
-            self.mongo_id = ObjectId(self.job.meta['mongo_id'])
+        self.mongo_id = ObjectId(self.job.meta['mongo_id'])
         self.run()
 
     @property

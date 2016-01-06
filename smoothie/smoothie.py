@@ -76,8 +76,7 @@ def data_get(mongo_id):
         Get a mongo document.
     """
 
-    return dumps(DB.find_one({'_id': ObjectId(mongo_id)},
-                             {'$set': request.data}))
+    return dumps(DB.find_one({'_id': ObjectId(mongo_id)}))
 
 
 @APP.route('/data/<mongo_id>', methods=["POST"])
@@ -87,8 +86,8 @@ def data_post(mongo_id):
 
         Modify a mongo document.
     """
-    return DB.update({'_id': ObjectId(mongo_id)},
-                     {'$set': request.data})
+    return dumps(DB.update({'_id': ObjectId(mongo_id)},
+                           {'$set': request.form}))
 
 
 @APP.route('/stop_plugin/<mongo_id>/<job_id>', methods=["DELETE"])

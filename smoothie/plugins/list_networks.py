@@ -103,6 +103,7 @@ class ListNetworks(SmoothiePlugin):
         moniface = self.get_moniface()
 
         self.update({'$set': {'monitor': moniface}})
+        self.tmp = False
 
         # Now we list the clients
         if self.start_airodump():
@@ -114,9 +115,16 @@ class ListNetworks(SmoothiePlugin):
                                     stderr=subprocess.PIPE,
                                     stdout=subprocess.PIPE)
 
-            self.update({'$set': {'airodump_pid': proc.pid}})
+            self.update({'$set': {'airodump_pid': proc.pid,
+                                  'tmpfile': self.tmp.name}})
         try:
-            with open("{}-01.csv".format(self.tmp.name), 'rb') as csvfile:
+            name = False
+            if not self.tmp:
+                name = self.mongo_document['tmpfile']
+            else:
+                name = self.tmp.name
+
+            with open("{}-01.csv".format(name), 'rb') as csvfile:
                 reader = csv.reader(csvfile)
                 targets = []
                 for target in reader:
