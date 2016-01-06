@@ -49,7 +49,6 @@ class SmoothiePlugin(object):
         """
         return DB.update({'_id': self.mongo_id}, query)
 
-    @property
     def run(self):
         """
             Main loop

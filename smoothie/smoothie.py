@@ -90,15 +90,15 @@ def data_post(mongo_id):
                            {'$set': request.form}))
 
 
-@APP.route('/stop_plugin/<mongo_id>/<job_id>', methods=["DELETE"])
-def delete(mongo_id, job_id):
+@APP.route('/stop_plugin/<mongo_id>/<job_id>', methods=["POST"])
+def stop_plugin(mongo_id, job_id):
     """
         .. http:put:: /create/(str:plugin)
 
             Stop a specific redis job.
     """
-    return DB.update({'_id': ObjectId(mongo_id)},
-                     {'$set': {'run_{}'.format(job_id): False}})
+    return dumps(DB.update({'_id': ObjectId(mongo_id)},
+                           {'$set': {'run_{}'.format(job_id): False}}))
 
 
 @APP.route('/create/<attack_type>', methods=["POST"])
