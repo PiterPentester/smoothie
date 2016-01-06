@@ -3,6 +3,7 @@
 from rq import use_connection, get_current_job
 from bson import ObjectId
 import pymongo
+import logging
 import time
 
 MONGOCLIENT = pymongo.MongoClient()
