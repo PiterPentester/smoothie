@@ -50,22 +50,29 @@ def create(plugin, mongo_id):
         Create a plugin task for a specific attack.
         This will add to the redis queue a job for
         a specific smoothie plugin.
-
-        That will be executed and added to the mongo
-        database with the returned id.
-
         Mongodb ID will be accesible to the plugin in
         meta['mongo_id'] (wich SHOULD be the ID of
         a current working attack)
     """
     job = RQ_QUEUE.enqueue_call(func="smoothie.plugins.{}".format(plugin),
                                 timeout=60 * 60 * 60)
-    job.meta = dict(request.form)
     job.meta['mongo_id'] = mongo_id
     job.save()
-    DB.update({'_id': ObjectId(mongo_id)},
-              {'$set': {'run_{}'.format(str(job.id)): True}})
+    set_ = dict(request.form)
+    set_['run_{}'.format(str(job.id))] = True
+    DB.update({'_id': ObjectId(mongo_id)}, {'$set': set_})
     return str(job.id)
+
+
+@APP.route('/stop_plugin/<mongo_id>/<job_id>', methods=["POST"])
+def stop_plugin(mongo_id, job_id):
+    """
+        .. http:put:: /create/(str:plugin)
+
+            Stop a specific redis job.
+    """
+    return dumps(DB.update({'_id': ObjectId(mongo_id)},
+                           {'$set': {'run_{}'.format(job_id): False}}))
 
 
 @APP.route('/data/<mongo_id>', methods=["GET"])
@@ -90,58 +97,12 @@ def data_post(mongo_id):
                            {'$set': request.form}))
 
 
-@APP.route('/stop_plugin/<mongo_id>/<job_id>', methods=["POST"])
-def stop_plugin(mongo_id, job_id):
+@APP.route('/create', methods=["POST"])
+def create_attack():
     """
-        .. http:put:: /create/(str:plugin)
-
-            Stop a specific redis job.
+        Dummy function to create a mongodb document and get its id.
     """
-    return dumps(DB.update({'_id': ObjectId(mongo_id)},
-                           {'$set': {'run_{}'.format(job_id): False}}))
-
-
-@APP.route('/create/<attack_type>', methods=["POST"])
-def create_attack(attack_type):
-    """
-        Kind of a dummy function.
-        This right now only creates a new entry in attack
-        mongo database and returns the id.
-        The mongodb document structures is as follows::
-
-            Attack{
-                _id : ObjectId()
-                type: <attack_type>,
-                aps: [
-                    {
-                        _id: <int>,
-                        ip: <ip>,
-                        bssid: <mac>
-                        essid: <essid>,
-                        credentials: [],
-                        extra_data: [],
-                        raw_packets: []
-                    }
-                ],
-                clients: [
-                    {
-                        _id: <int>,
-                        ip: <ip>,
-                        bssid: <mac>
-                        essid: <essid>,
-                        credentials: [],
-                        extra_data: [],
-                        raw_packets: []
-                    }
-                ]
-
-            }
-    """
-    return str(DB.insert_one({
-        'type': attack_type,
-        'aps': [],
-        'clients': []
-    }).inserted_id)
+    return str(DB.insert_one({}).inserted_id)
 
 
 def main():
