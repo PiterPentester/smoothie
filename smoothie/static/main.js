@@ -11,6 +11,7 @@ function plugin_button(button, cb){
         });
     }
 }
+
 function update_data(cb){ $.get('/data/' + window.attack_id, cb, 'json'); }
 function post_data(data, cb){ $.post('/data/' + window.attack_id, data).done(cb); }
 function element_true(where, what) { return  $.inArray(where, what) && where[what]; }
@@ -23,12 +24,48 @@ function update_button_status(button){
 function init_ifaces(){
     window.setTimeout(function(){
         update_data(function(d){
-            if($.inArray('wifi_list', d)){
+            if('wifi_list' in d){
                 $('body').addClass('loaded');
-            }
+            } else { init_ifaces(); }
         });
-    }, 300);
+    }, 500);
 }
+
+function SmoothieViewModel() {
+    var self = this;
+    self.SmoothieData = ko.observable();
+    self.update = function() {
+        $.ajax('/data/' + window.attack_id, {
+            type: "GET",
+            dataType: 'json',
+            success: function(allData) {self.SmoothieData(allData);}
+        });
+    }
+}
+
+ko.bindingHandlers.foreachprop = {
+    transformObject: function (obj) {
+        var properties = [];
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                properties.push({ key: key, value: obj[key] });
+            }
+        }
+        return properties;
+    },
+    init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+        var value = ko.utils.unwrapObservable(valueAccessor()),
+            properties = ko.bindingHandlers.foreachprop.transformObject(value);
+        ko.applyBindingsToNode(element, { foreach: properties }, bindingContext);
+        return { controlsDescendantBindings: true };
+    }
+};
+
+var smoothieViewModel = new SmoothieViewModel();
+$(document).ready(function(){
+    window.setInterval(smoothieViewModel.update, 1000);
+    ko.applyBindings(smoothieViewModel);
+});
 
 $(document).ready(function(){
     $.post('/create/' + $('body').data('attack_type'), function(data){
@@ -42,11 +79,31 @@ $(document).ready(function(){
         });
     });
 
-    $('button[data-plugin]').on('click', function(ev){ plugin_button(ev.target, update_button_status)});
+    $('button[data-plugin]').on('click', function(ev){ plugin_button(ev.target, function(){
+        update_button_status(ev.target);
+        try{eval($(ev.target).data('callback'));} catch(e){console.log(e);}
+    })});
 
     // We periodically check for tasks status.
     window.setTimeout(function(){
         $('button[data-plugin]').each(function(){ update_button_status(this); }),
         20 * 100
     });
+
+    $(".main").onepage_scroll({
+       sectionContainer: "section",
+       easing: "ease",
+       animationTime: 1000,
+       pagination: true,
+       updateURL: false,
+       beforeMove: function(index) {},
+       afterMove: function(index) {},
+       loop: false,
+       keyboard: true,
+       responsiveFallback: false,
+       direction: "vertical"
+    });
+
 });
+
+

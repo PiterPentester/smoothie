@@ -112,7 +112,18 @@ def create_attack(attack_type):
             Attack{
                 _id : ObjectId()
                 type: <attack_type>,
-                targets: [
+                aps: [
+                    {
+                        _id: <int>,
+                        ip: <ip>,
+                        bssid: <mac>
+                        essid: <essid>,
+                        credentials: [],
+                        extra_data: [],
+                        raw_packets: []
+                    }
+                ],
+                clients: [
                     {
                         _id: <int>,
                         ip: <ip>,
@@ -123,11 +134,13 @@ def create_attack(attack_type):
                         raw_packets: []
                     }
                 ]
+
             }
     """
     return str(DB.insert_one({
         'type': attack_type,
-        'targets': []
+        'aps': [],
+        'clients': []
     }).inserted_id)
 
 

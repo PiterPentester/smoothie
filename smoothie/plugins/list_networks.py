@@ -126,15 +126,27 @@ class ListNetworks(SmoothiePlugin):
 
             with open("{}-01.csv".format(name), 'rb') as csvfile:
                 reader = csv.reader(csvfile)
-                targets = []
+
+                clients = []
+                aps = []
+
                 for target in reader:
                     target_ = get_target(target)
                     if target_:
-                        targets.append(target_)
+                        type_ = target_.pop('type')
+                        if type_ == "client":
+                            clients.append(target_)
+                        else:
+                            aps.append(target_)
+
                 # Esto no es un diccionario es una lista!!!
-                targets_b = self.mongo_document['targets']
-                res = targets_b + [x for x in targets if x not in targets_b]
-                self.update({'$set': {'targets': res}})
+                cl_b = self.mongo_document['clients']
+                aps_b = self.mongo_document['aps']
+                r_clients = cl_b + [x for x in clients if x not in cl_b]
+                r_aps = aps_b + [x for x in aps if x not in aps_b]
+
+                self.update({'$set': {'clients': r_clients, 'aps': r_aps}})
+
         except Exception as err:
             logging.exception(err)
             time.sleep(1)
