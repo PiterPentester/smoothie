@@ -45,5 +45,5 @@ It actually requires you to start:
 And, of course, having mongodb and redis running.
 Access it at port 8080 (not yet configurable).
 
-.. image:: /../master/doc/smoothie.gif?raw=true
+.. image:: /../master/docs/smoothie.gif?raw=true
 
