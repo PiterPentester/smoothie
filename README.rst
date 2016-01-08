@@ -30,3 +30,20 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+
+Current state
+-------------
+
+This is a totally dummy project in its current state.
+It really does nothing useful (yet looks cool).
+
+It actually requires you to start:
+
+    - A few (at least 2) rq workers on the "plugins" queue (as root).
+    - smoothie
+
+And, of course, having mongodb and redis running.
+Access it at port 8080 (not yet configurable).
+
+.. image:: /../master/doc/smoothie.gif?raw=true
+
