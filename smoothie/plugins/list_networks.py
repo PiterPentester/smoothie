@@ -124,6 +124,9 @@ class ListNetworks(SmoothiePlugin):
             else:
                 name = self.tmp.name
 
+            if not os.path.exists("{}-01.csv".format(name)):
+                return
+
             with open("{}-01.csv".format(name), 'rb') as csvfile:
                 reader = csv.reader(csvfile)
 

@@ -46,7 +46,7 @@
             <h1 class="text-center"> Are you targetting a specific network / client ? </h1>
             <hr>
             <div data-bind="foreach: ButtonsModel">
-                <div class="row">
+                <div class="row" style="margin-bottom:10px">
                     <div class="col-md-12 text-center">
                         <button data-bind="click: start, attr{aria-pressed: status}, text:value" class="btn btn-success btn-lg" 
                             data-toggle="button" ></button>
@@ -65,10 +65,10 @@
                     <th>SSID</th>
                     <th>ESSID</th>
                 </thead>
-                <tbody>
-                    <tr data-bind="foreach: aps">
+                <tbody data-bind="foreach: aps">
+                    <tr>
                         <td data-bind="text: $data.power"></td>
-                        <td data-bind="text: $data.ssid"></td>
+                        <td data-bind="text: $data.essid"></td>
                         <td data-bind="text: $data.bssid"></td>
                     </tr>
                 </tbody>
