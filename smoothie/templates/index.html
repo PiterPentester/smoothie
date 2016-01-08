@@ -23,6 +23,8 @@
     <script src="/static/jquery.onepage-scroll.min.js"></script>
 
     <script src="/static/main.js"></script>
+    <script src="/static/style.js"></script>
+    <script src="/static/models.js"></script>
     <!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/shepherd/1.5.0/js/shepherd.min.js"></script>-->
 
   </head>
@@ -33,17 +35,15 @@
         <div class="loader-section section-right"></div>
     </div></div>
 
-    <div class=main >
-        <section class="page1 section" data-index=1>
+    <div class=main data-bind="with: MainModel" >
+
+        <section class="page1 section" data-index=1  data-bind="with: WifiCardsModel">
             <h1 class="text-center"> Select your wireless card </h1>
             <hr>
-            <button class="btn btn-success btn-large" style="display:none" data-callback="init_ifaces()" data-autorun=true data-plugin="interfaces">Interfaces</button>
-
-            <div data-bind="foreach: SmoothieData">
-                <div data-bind="foreach: wifi_list" class=row>
-                    <div class="col col-md12 text-center">
-                        <button class="btn btn-primary btn-lg lead h1" onclick="post_data({'wifi': $(this).text()}, function(){ $('.main').moveDown(); })" data-bind="text: $data"></button>
-                    </div>
+            <div data-bind="foreach: wifi_list">
+                <div class="col col-md12 text-center">
+                    <button class="btn btn-primary btn-lg lead h1" onclick="$.post('/data/' + window.attack_id, {'wifi': $(this).text()}, function(){ $('.main').moveDown(); })" 
+                        data-bind="text: $data"></button>
                 </div>
             </div>
         </section>
@@ -51,59 +51,50 @@
         <section class="page2 section" data-index=2>
             <h1 class="text-center"> Are you targetting a specific network / client ? </h1>
             <hr>
-            <div class="row">
-                <div class="col-md-12 text-center">
-                    <button class="btn btn-success btn-lg" data-callback="$('.main').moveDown();" data-toggle="button" data-plugin="list_networks">Directed attack</button>
-                </div>
-            </div>
-            <br/>
-            <div class="row">
-                <div class="col-md-12 text-center">
-                    <button class="btn btn-success btn-lg"  data-toggle="button" data-plugin="list_networks">General attack</button>
+            <div data-bind="foreach: ButtonsModel">
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <button data-bind="click: start, attr{aria-pressed: status}, text:value" class="btn btn-success btn-lg" 
+                            data-toggle="button" ></button>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <section class="page1 section" data-index=1>
-            <h1 class="text-center"> Choose a target </h1>
-            <hr>
+        <section class="page1 section" data-bind="with: TargetsModel" data-index=1>
+            <h1 class="text-center"> Choose a target </h1> <hr/>
 
             <h3 class="text-info text-center"> Access Points </h3>
-            <div data-bind="foreach: SmoothieData">
-                <table class="table table-stripped table-noborder">
-                    <thead>
-                        <th>Power</th>
-                        <th>SSID</th>
-                        <th>ESSID</th>
-                    </thead>
-                    <tbody>
-                        <tr data-bind="foreach: aps">
-                            <td data-bind="text: $data.power"></td>
-                            <td data-bind="text: $data.ssid"></td>
-                            <td data-bind="text: $data.bssid"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <table style="margin-bottom:30px" class="table table-stripped table-noborder">
+                <thead>
+                    <th>Power</th>
+                    <th>SSID</th>
+                    <th>ESSID</th>
+                </thead>
+                <tbody>
+                    <tr data-bind="foreach: aps">
+                        <td data-bind="text: $data.power"></td>
+                        <td data-bind="text: $data.ssid"></td>
+                        <td data-bind="text: $data.bssid"></td>
+                    </tr>
+                </tbody>
+            </table>
 
-            <br/>
             <h3 class="text-info text-center"> Clients </h3>
-            <div data-bind="foreach: SmoothieData">
-                <table class="table table-stripped table-noborder">
-                    <thead>
-                        <th>Power</th>
-                        <th>SSID</th>
-                        <th>ESSID</th>
-                    </thead>
-                    <tbody>
-                        <tr data-bind="foreach: clients">
-                            <td data-bind="text: $data.power"></td>
-                            <td data-bind="text: $data.ssid"></td>
-                            <td data-bind="text: $data.bssid"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <table class="table table-stripped table-noborder">
+                <thead>
+                    <th>Power</th>
+                    <th>SSID</th>
+                    <th>ESSID</th>
+                </thead>
+                <tbody>
+                    <tr data-bind="foreach: clients">
+                        <td data-bind="text: $data.power"></td>
+                        <td data-bind="text: $data.ssid"></td>
+                        <td data-bind="text: $data.bssid"></td>
+                    </tr>
+                </tbody>
+            </table>
 
         </section>
 

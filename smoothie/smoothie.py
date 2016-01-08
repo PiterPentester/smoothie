@@ -13,12 +13,6 @@
     be able to import smoothie.server.modules.<your_task> as you add
     your_task using this.
 
-    All post data should be available inside the task using
-    get_current_job().meta
-
-    I'll need another component that notifies changes in mongodb
-    via websocket / marks content as changed / sends notifies via ws.
-
 """
 
 from flask import Flask, request, render_template
@@ -26,6 +20,7 @@ from bson.json_util import dumps
 from bson import ObjectId
 from redis import Redis
 from rq import Queue
+import json
 import pymongo
 import logging
 
@@ -54,25 +49,12 @@ def create(plugin, mongo_id):
         meta['mongo_id'] (wich SHOULD be the ID of
         a current working attack)
     """
+    DB.update({'_id': ObjectId(mongo_id)}, {'$set': dict(request.form)})
     job = RQ_QUEUE.enqueue_call(func="smoothie.plugins.{}".format(plugin),
                                 timeout=60 * 60 * 60)
     job.meta['mongo_id'] = mongo_id
     job.save()
-    set_ = dict(request.form)
-    set_['run_{}'.format(str(job.id))] = True
-    DB.update({'_id': ObjectId(mongo_id)}, {'$set': set_})
     return str(job.id)
-
-
-@APP.route('/stop_plugin/<mongo_id>/<job_id>', methods=["POST"])
-def stop_plugin(mongo_id, job_id):
-    """
-        .. http:put:: /create/(str:plugin)
-
-            Stop a specific redis job.
-    """
-    return dumps(DB.update({'_id': ObjectId(mongo_id)},
-                           {'$set': {'run_{}'.format(job_id): False}}))
 
 
 @APP.route('/data/<mongo_id>', methods=["GET"])
@@ -80,29 +62,27 @@ def data_get(mongo_id):
     """
     .. http::post:: /data/(str:mongo_id)
 
-        Get a mongo document.
+        Returns a mongo document.
     """
-
     return dumps(DB.find_one({'_id': ObjectId(mongo_id)}))
 
 
 @APP.route('/data/<mongo_id>', methods=["POST"])
-def data_post(mongo_id):
+@APP.route('/data', methods=["POST"])
+def data_post(mongo_id=False):
     """
     .. http::post:: /data/(str:mongo_id)
 
         Modify a mongo document.
+
+        If no id is requested, it'll create a new one
+        and return the id.
     """
+    if not mongo_id:
+        return str(DB.insert_one(json.loads(request.form['data'])).inserted_id)
+
     return dumps(DB.update({'_id': ObjectId(mongo_id)},
                            {'$set': request.form}))
-
-
-@APP.route('/create', methods=["POST"])
-def create_attack():
-    """
-        Dummy function to create a mongodb document and get its id.
-    """
-    return str(DB.insert_one({}).inserted_id)
 
 
 def main():
