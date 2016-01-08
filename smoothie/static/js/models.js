@@ -44,7 +44,6 @@ function PluginButton(plugin, value, callback) {
     }
 }
 
-
 function start_ko(){
     MainModel = {
         WifiCardsModel: new WifiCards(),
@@ -57,6 +56,5 @@ function start_ko(){
 
     tid = setInterval(function(){MainModel['WifiCardsModel'].update(tid);});
     setInterval(function(){MainModel["TargetsModel"].update();}, 1000)
-
     ko.applyBindings(MainModel)
 }
