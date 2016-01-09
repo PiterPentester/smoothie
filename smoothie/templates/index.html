@@ -36,8 +36,8 @@
             <hr>
             <div data-bind="foreach: wifi_list">
                 <div class="col col-md12 text-center">
-                    <button class="btn btn-primary btn-lg lead h1" onclick="$.post('/data/' + window.attack_id, {'wifi': $(this).text()}, function(){ $('.main').moveDown(); })" 
-                        data-bind="text: $data"></button>
+                    <button class="btn btn-primary btn-lg lead h1"
+                        data-bind="text: $data, click: $parent.select"></button>
                 </div>
             </div>
         </section>
@@ -48,8 +48,9 @@
             <div data-bind="foreach: ButtonsModel">
                 <div class="row" style="margin-bottom:10px">
                     <div class="col-md-12 text-center">
-                        <button data-bind="click: start, attr{aria-pressed: status}, text:value" class="btn btn-success btn-lg" 
-                            data-toggle="button" ></button>
+                        <button data-bind="click: start, attr{aria-pressed: status}, text:value" 
+                                class="btn btn-success btn-lg" 
+                                data-toggle="button" ></button>
                     </div>
                 </div>
             </div>
@@ -66,7 +67,7 @@
                     <th>ESSID</th>
                 </thead>
                 <tbody data-bind="foreach: aps">
-                    <tr>
+                    <tr data-bind="click: select, attrs:{data-bssid: $data.bssid}">
                         <td data-bind="text: $data.power"></td>
                         <td data-bind="text: $data.essid"></td>
                         <td data-bind="text: $data.bssid"></td>
@@ -92,6 +93,9 @@
 
         </section>
 
+        <section with="AttackModel">
+            <h2> Attack on <span data-bind="text: target"></span></h2>
+        </section>
 
     </div>
   </body>

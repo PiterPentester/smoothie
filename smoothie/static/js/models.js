@@ -23,6 +23,11 @@ function WifiCards() {
             clearInterval(atid);
         }
     }
+    self.select = function(that, evt) {
+        $.post('/data/' + window.attack_id,
+               {'target': $(evt.data("target")).data('bssid')},
+               function(){ $('.main').moveDown(); })
+    }
 }
 
 function PluginButton(plugin, value, callback) {
@@ -44,6 +49,13 @@ function PluginButton(plugin, value, callback) {
     }
 }
 
+function Attack(){
+    self = this;
+    self.target = function(){
+        return window.current_data['target']
+    }
+}
+
 function start_ko(){
     MainModel = {
         WifiCardsModel: new WifiCards(),
@@ -51,7 +63,8 @@ function start_ko(){
         ButtonsModel: [
              new PluginButton('', 'General Attack', function(){ $('.main').moveDown(); }),
              new PluginButton('list_networks', 'Directed Attack', function(){ $('.main').moveDown(); }),
-        ]
+        ],
+        AttackModel: new Attack()
     };
 
     tid = setInterval(function(){MainModel['WifiCardsModel'].update(tid);});
