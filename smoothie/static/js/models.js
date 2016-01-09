@@ -31,19 +31,31 @@ function WifiCards() {
 }
 
 function PluginButton(plugin, value, callback) {
+    /*
+     *
+     * Generic buttons.
+     * This one allows us to start a task in rq via:
+     * - If task is not alive, it calls /start_plugin/ to add it
+     *   to rq + mongo
+     * - After that it
+     *
+     * Ig accepts a callback, and if no plugin has been given, it
+     * just executes the callback and goes on with it.
+     * So it also can be used for normal buttons.
+     */
     var self = this;
     self.value = value;
     self.status = false;
     self.start = function(){
         self.status = plugin in window.current_data['plugins']? window.current_data['plugins'][plugin] : false
         if(plugin != ""){
+            status_ = {}
+            status_['plugins' + plugin] = !self.status
             if (!self.status){
-                $.post('/start_plugin/' + plugin + "/" + window.attack_id);
+                $.post('/start_plugin/' + plugin + "/" + window.attack_id, {'$set': status_});
+            } else {
+                $.post('/data/' + window.attack_id, {'$set': status_});
             }
-            name = 'plugins.' + plugin;
-            status_ = {}; // Unclean, but gets the job done. Needed a dynamic key.
-            status_['plugins.' + plugin] = ! status
-            $.post('/data/' + window.attack_id, status_)
         }
         callback(self);
     }
