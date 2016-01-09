@@ -62,6 +62,7 @@ class ListNetworks(SmoothiePlugin):
               mode
             - Teardown clears interface and kills airodump
     """
+
     def get_moniface(self):
         """
             Get monitor interface.
@@ -89,11 +90,16 @@ class ListNetworks(SmoothiePlugin):
         else:
             return True
 
+    def fill_target(self):
+        raise NotImplementedError()
+
     def callback(self):
         """
             - Put the selected network on monitor mode
             - Scan for networks
             - Add networks and clients into target array.
+            - If a target has been selected, it takes care of it
+              by fulfulling the remaining information in full_target.
         """
         while 'wifi' not in self.mongo_document:
             # Wait for the user to choose a wifi network.
@@ -148,7 +154,12 @@ class ListNetworks(SmoothiePlugin):
                 r_clients = cl_b + [x for x in clients if x not in cl_b]
                 r_aps = aps_b + [x for x in aps if x not in aps_b]
 
-                self.update({'$set': {'clients': r_clients, 'aps': r_aps}})
+                if 'target' in self.mongo_document:
+                    self.update({'$set': {'plugins.list_networks': False}})
+                    self.update({'$set': {'plugins.full_target':
+                                          self.fill_target()}})
+                else:
+                    self.update({'$set': {'clients': r_clients, 'aps': r_aps}})
 
         except Exception as err:
             logging.exception(err)
