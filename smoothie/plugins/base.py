@@ -3,8 +3,9 @@
 from rq import use_connection, get_current_job
 from bson import ObjectId
 import pymongo
-import logging
+import inspect
 import time
+import os
 
 MONGOCLIENT = pymongo.MongoClient()
 DB = MONGOCLIENT.smoothie.attacks
@@ -24,6 +25,8 @@ class SmoothiePlugin(object):
         while 'mongo_id' not in self.job.meta:
             self.job = get_current_job()
         self.mongo_id = ObjectId(self.job.meta['mongo_id'])
+        file_ = inspect.getfile(self.__class__)
+        self.name = os.path.basename(file_).split('.')[0]
         self.run()
 
     @property
@@ -32,10 +35,9 @@ class SmoothiePlugin(object):
             This property checks if we've stopped
             the job via API
         """
-        key = 'run_{}'.format(self.job.id)
-        if key not in self.mongo_document:
+        if self.name not in self.mongo_document['plugins']:
             return True  # Not yet started
-        return self.mongo_document[key]
+        return self.mongo_document['plugins'][self.name]
 
     @property
     def mongo_document(self):
