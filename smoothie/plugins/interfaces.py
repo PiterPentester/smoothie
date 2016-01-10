@@ -10,6 +10,9 @@ class Interfaces(SmoothiePlugin):
         Ignoring those we create on other plugins
         and tipical monitor interface names
     """
+
+    timeout = 2 * 60
+
     def callback(self):
         if 'wifi_list' not in self.mongo_document:
 

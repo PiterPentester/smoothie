@@ -22,6 +22,8 @@ class SmoothiePlugin(object):
     """
     def __init__(self):
         self.job = get_current_job()
+        self.timeout = 60 * 10
+        self.start_date = time.time()
         while 'mongo_id' not in self.job.meta:
             self.job = get_current_job()
         self.mongo_id = ObjectId(self.job.meta['mongo_id'])
@@ -35,6 +37,8 @@ class SmoothiePlugin(object):
             This property checks if we've stopped
             the job via API
         """
+        if time.time() > self.start_date + self.timeout:
+            return False
         if self.name not in self.mongo_document['plugins']:
             return True  # Not yet started
         return self.mongo_document['plugins'][self.name]
