@@ -63,8 +63,13 @@ function PluginButton(plugin, value, callback) {
 
 function Attack(){
     self = this;
-    self.target = function(){
-        return window.current_data['target']
+    self.target = window.current_data['target']
+    self.target_tree = window.current_data['target_tree']
+    self.target_tree_image = window.current_data['target_tree_image']
+    self.update = function(){
+        self.target = window.current_data['target']
+        self.target_tree = window.current_data['target_tree']
+        self.target_tree_image = window.current_data['target_tree_image']
     }
 }
 
@@ -81,5 +86,6 @@ function start_ko(){
 
     tid = setInterval(function(){MainModel['WifiCardsModel'].update(tid);});
     setInterval(function(){MainModel["TargetsModel"].update();}, 1000)
+    setInterval(function(){MainModel["AttackModel"].update();}, 1000)
     ko.applyBindings(MainModel)
 }

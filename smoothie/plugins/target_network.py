@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from smoothie.plugins.base import SmoothiePlugin
-import time
+from pydot_modern import pydot
+import base64
 
 
 class TargetNetwork(SmoothiePlugin):
@@ -17,13 +18,6 @@ class TargetNetwork(SmoothiePlugin):
             Just the target
         """
         return self.mongo_document['target']
-
-    def get_target_svg(self):
-        """
-            Returns a svg with current network associated with the target
-        """
-        tree = self.get_target_tree()
-        return "TODO: Make this return an actual svg ='D"
 
     def get_target_tree(self):
         """
@@ -64,11 +58,38 @@ class TargetNetwork(SmoothiePlugin):
                 if target['bssid'] == self.target:
                     return target
 
+    def get_target_tree_jpg(self, tree):
+
+        def diagize(elem):
+            """
+                Returns labeled element for dot.
+            """
+            vals = '\\n'.join(elem.values())
+            return '"{}" [label="{}"]'.format(elem['bssid'], vals)
+
+        def do_tree():
+            """
+                Returns a dot three (generator, each line).
+            """
+            yield "digraph G {"
+            yield diagize(tree[0])
+
+            for client in tree[1]:
+                yield diagize(client)
+                yield '"{}" -> "{}"'.format(tree[0]['bssid'], client['bssid'])
+            yield "}"
+
+        dialog = '\n'.join([a for a in do_tree()])
+        g = pydot.graph_from_dot_data(dialog)
+        enc = base64.b64encode(g.create(format='jpe'))
+        return "data:image/jpg;base64,{}".format(enc)
+
     def callback(self):
         """
-            Waits until user has selected a target.
+            Creates target tree
         """
-        if 'target' not in self.mongo_document:
-            time.sleep(10)
+        tree = self.get_target_tree()
         self.update({'$set': {'target': self.get_target()}})
-        self.update({'$set': {'target_svg': self.get_target_svg()}})
+        self.update({'$set': {'target_tree': tree}})
+        self.update({'$set': {'target_tree_jpg':
+                              self.get_target_tree_jpg(tree)}})

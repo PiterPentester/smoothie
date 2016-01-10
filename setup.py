@@ -15,17 +15,17 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = [
-    'rq', 'flask', 'redis', 'pymongo'
+    'rq', 'flask', 'redis', 'pymongo',
+    'pydot_modern'
 ]
 
-test_requirements = [
-    # TODO: put package test requirements here
-]
+test_requirements = []
 
 setup(
     name='smoothie',
     version='0.1.0',
-    description="Wireless smoothie. Simple and usable web interface for common wireless attacks",
+    description=("Wireless smoothie. Simple and usable web"
+                 " interface for common wireless attacks"),
     long_description=readme + '\n\n' + history,
     author="David Francos Cuartero",
     author_email='me@davidfrancos.net',
