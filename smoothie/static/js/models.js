@@ -8,6 +8,15 @@ function Targets() {
             self.clients(window.current_data['clients']);
         }
     }
+    self.select = function(that, evt) {
+        $.post('/data/' + window.attack_id,
+               {'target': $(evt.target.parentNode).data('bssid')},
+               function(){
+                   $('.main').moveDown();
+                    $.post('/start_plugin/target_network/' + window.attack_id);
+               });
+    }
+
 }
 
 function WifiCards() {
@@ -25,8 +34,10 @@ function WifiCards() {
     }
     self.select = function(that, evt) {
         $.post('/data/' + window.attack_id,
-               {'target': $(evt.data("target")).data('bssid')},
-               function(){ $('.main').moveDown(); })
+               {'wifi': that},
+               function(){
+                   $('.main').moveDown();
+               })
     }
 }
 
@@ -50,26 +61,29 @@ function PluginButton(plugin, value, callback) {
         self.status = plugin in window.current_data['plugins']? window.current_data['plugins'][plugin] : false
         if(plugin != ""){
             status_ = {}
-            status_['plugins' + plugin] = !self.status
+            status_['plugins.' + plugin] = !self.status
+            console.log(status_)
             if (!self.status){
-                $.post('/start_plugin/' + plugin + "/" + window.attack_id, {'$set': status_});
+                $.post('/start_plugin/' + plugin + "/" + window.attack_id, status_);
             } else {
-                $.post('/data/' + window.attack_id, {'$set': status_});
+                $.post('/data/' + window.attack_id, status_);
             }
         }
         callback(self);
     }
 }
 
-function Attack(){
+function Summary(){
     self = this;
-    self.target = window.current_data['target']
-    self.target_tree = window.current_data['target_tree']
-    self.target_tree_image = window.current_data['target_tree_image']
+    self.target = ko.observable();
+    self.target_tree = ko.observable();
+    self.target_tree_image = ko.observable();
     self.update = function(){
-        self.target = window.current_data['target']
-        self.target_tree = window.current_data['target_tree']
-        self.target_tree_image = window.current_data['target_tree_image']
+        if (window.current_data && 'target' in window.current_data) {
+            self.target(window.current_data['target']);
+            self.target_tree(window.current_data['target_tree']);
+            self.target_tree_image (window.current_data['target_tree_jpg']);
+        }
     }
 }
 
@@ -81,11 +95,11 @@ function start_ko(){
              new PluginButton('', 'General Attack', function(){ $('.main').moveDown(); }),
              new PluginButton('list_networks', 'Directed Attack', function(){ $('.main').moveDown(); }),
         ],
-        AttackModel: new Attack()
+        SummaryModel: new Summary()
     };
 
     tid = setInterval(function(){MainModel['WifiCardsModel'].update(tid);});
     setInterval(function(){MainModel["TargetsModel"].update();}, 1000)
-    setInterval(function(){MainModel["AttackModel"].update();}, 1000)
+    setInterval(function(){MainModel["SummaryModel"].update();}, 1000)
     ko.applyBindings(MainModel)
 }

@@ -163,7 +163,13 @@ class ListNetworks(SmoothiePlugin):
         """
             Cleanses airodump-ng process and brings monitor interface down
         """
+        mon = self.mongo_document['monitor']
         psutil.Process(self.mongo_document['airodump_pid']).kill()
-        subprocess.check_call(['airmon-ng', 'stop',
-                               self.mongo_document['monitor']])
+        subprocess.check_call(['airmon-ng', 'stop', mon])
+        subprocess.check_call(['iw', 'dev', mon, 'stop'])
         return True
+
+
+def run():
+    """ main """
+    return str(ListNetworks())

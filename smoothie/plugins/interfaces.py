@@ -28,3 +28,9 @@ class Interfaces(SmoothiePlugin):
                       if not blacklisted(a)]
 
             self.update({'$set': {'wifi_list': ifaces}})
+            self.stop()
+
+
+def run():
+    """ main """
+    return str(Interfaces())

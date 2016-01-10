@@ -56,18 +56,18 @@
             </div>
         </section>
 
-        <section class="page1 section" data-bind="with: TargetsModel" data-index=1>
+        <section class="page3 section" data-bind="with: TargetsModel" data-index=1>
             <h1 class="text-center"> Choose a target </h1> <hr/>
 
             <h3 class="text-info text-center"> Access Points </h3>
             <table style="margin-bottom:30px" class="table table-stripped table-noborder">
                 <thead>
                     <th>Power</th>
-                    <th>SSID</th>
                     <th>ESSID</th>
+                    <th>BSSID</th>
                 </thead>
                 <tbody data-bind="foreach: aps">
-                    <tr data-bind="click: select, attrs:{data-bssid: $data.bssid}">
+                    <tr data-bind="click: $parent.select, attr: {'data-bssid': $data.bssid }">
                         <td data-bind="text: $data.power"></td>
                         <td data-bind="text: $data.essid"></td>
                         <td data-bind="text: $data.bssid"></td>
@@ -79,11 +79,11 @@
             <table class="table table-stripped table-noborder">
                 <thead>
                     <th>Power</th>
-                    <th>SSID</th>
                     <th>ESSID</th>
+                    <th>BSSID</th>
                 </thead>
-                <tbody>
-                    <tr data-bind="foreach: clients">
+                <tbody data-bind="foreach: clients">
+                    <tr data-bind="click: $parent.select, attr: {'data-bssid': $data.bssid }">
                         <td data-bind="text: $data.power"></td>
                         <td data-bind="text: $data.ssid"></td>
                         <td data-bind="text: $data.bssid"></td>
@@ -92,10 +92,13 @@
             </table>
 
         </section>
-
-        <section with="AttackModel">
-            <h2> Attack on <span data-bind="text: target"></span></h2>
+        <section class="page1 section" data-bind="with: SummaryModel" data-index=1>
+            <h1 class="text-center"> Target data summary </h1> <hr/>
+            <img data-bind="attr:{'src': target_tree_image}">
         </section>
+
+
+
 
     </div>
   </body>

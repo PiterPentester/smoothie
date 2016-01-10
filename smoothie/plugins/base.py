@@ -29,6 +29,8 @@ class SmoothiePlugin(object):
         self.mongo_id = ObjectId(self.job.meta['mongo_id'])
         file_ = inspect.getfile(self.__class__)
         self.name = os.path.basename(file_).split('.')[0]
+        self.result = "Ok"
+        self._do_run = True
         self.run()
 
     @property
@@ -41,6 +43,8 @@ class SmoothiePlugin(object):
             return False
         if self.name not in self.mongo_document['plugins']:
             return True  # Not yet started
+        if self._do_run is False:
+            return self._do_run
         return self.mongo_document['plugins'][self.name]
 
     @property
@@ -76,3 +80,12 @@ class SmoothiePlugin(object):
             Tasks to execute after the plugin has been asked to stop
         """
         pass
+
+    def stop(self):
+        """
+            Stops gracefuly
+        """
+        self._do_run = False
+
+    def __repr__(self):
+        return "{}: {}".format(self.name, self.result)
