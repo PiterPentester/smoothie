@@ -99,7 +99,7 @@ class ListNetworks(SmoothiePlugin):
             - Scan for networks
             - Add networks and clients into target array.
             - If a target has been selected, it takes care of it
-              by fulfulling the remaining information in full_target.
+              by fulfulling the remaining information in fill_target.
         """
         while 'wifi' not in self.mongo_document:
             # Wait for the user to choose a wifi network.
@@ -153,13 +153,7 @@ class ListNetworks(SmoothiePlugin):
                 aps_b = self.mongo_document['aps']
                 r_clients = cl_b + [x for x in clients if x not in cl_b]
                 r_aps = aps_b + [x for x in aps if x not in aps_b]
-
-                if 'target' in self.mongo_document:
-                    self.update({'$set': {'plugins.list_networks': False}})
-                    self.update({'$set': {'plugins.full_target':
-                                          self.fill_target()}})
-                else:
-                    self.update({'$set': {'clients': r_clients, 'aps': r_aps}})
+                self.update({'$set': {'clients': r_clients, 'aps': r_aps}})
 
         except Exception as err:
             logging.exception(err)
