@@ -85,7 +85,7 @@ class SmoothiePlugin(object):
         """
             Stops gracefuly
         """
-        self._do_run = False
+        self.do_run = False
 
     def __repr__(self):
         return "{}: {}".format(self.name, self.result)
