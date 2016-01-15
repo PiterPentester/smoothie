@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+    TargetNetwork module
 
-from smoothie.plugins.base import SmoothiePlugin
+    Gets the target network selected by the client (in whatever format)
+    standarizes it and adds extra data
+"""
+
+from smoothie.plugins import SmoothiePlugin
 
 
 class TargetNetwork(SmoothiePlugin):

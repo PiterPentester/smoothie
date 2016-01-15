@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from wireless import Wireless
-from smoothie.plugins.base import SmoothiePlugin
+from smoothie.plugins import SmoothiePlugin
 
 
 class Interfaces(SmoothiePlugin):

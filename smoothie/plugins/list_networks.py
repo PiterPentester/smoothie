@@ -5,7 +5,7 @@
     List networks
 """
 
-from smoothie.plugins.base import SmoothiePlugin
+from smoothie.plugins import SmoothiePlugin
 import pyrcrack
 
 
