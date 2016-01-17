@@ -6,7 +6,9 @@
 """
 
 from smoothie.plugins import SmoothiePlugin
-import pyrcrack
+from pyrcrack.management import Airmon
+from pyrcrack.scanning import Airodump
+import time
 
 
 class ListNetworks(SmoothiePlugin):
@@ -19,22 +21,22 @@ class ListNetworks(SmoothiePlugin):
               mode
             - Teardown clears interface and kills airodump
     """
-
-    def callback(self):
+    def run(self):
         """
-            - Put the selected network on monitor mode
-            - Scan for networks
-            - Add networks and clients into target array.
+            Main loop
         """
-        if 'wifi' not in self.mongo_document:
-            return  # Wait for the user to choose a wifi.
 
-        # Get monitor interface
-        with pyrcrack.Airmon(self.mongo_document['wifi']) as mon:
-            self.update({'$set': {'monitor': mon.moniface}})
-            with pyrcrack.Airodump(mon.moniface) as air:
-                for result in air.results:
-                    self.update({'$set': result})
+        while 'wifi' not in self.mongo_document:
+            time.sleep(10)
+
+        with Airmon(self.mongo_document['wifi']) as mon:
+            self.update({'$set': {'monitor': mon.interface}})
+            with Airodump(mon.interface) as air:
+                while self.do_run:
+                    time.sleep(10)
+                    self.update({'$set': {'tree': air.tree}})
+
+        self.teardown()
 
 
 def run():
