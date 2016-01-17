@@ -5,32 +5,36 @@
     List networks
 """
 
-from smoothie.plugins import SmoothiePlugin
-from pyrcrack.management import Airmon
-from pyrcrack.scanning import Airodump
-import time
+from smoothie.plugins.base import SmoothiePlugin
+import pyrcrack
 
 
 class ListNetworks(SmoothiePlugin):
     """
-        Handle airmon and airodump using pyrcrack to set a target tree in mongo
+        List networks.
+        This plugin:
+            - Puts the selected network interface in monitor mode
+            - Retrieves the monitor interface
+            - Starts an analysis with airodump-ng in channel hoping
+              mode
+            - Teardown clears interface and kills airodump
     """
-    def run(self):
+
+    def callback(self):
         """
-            Main loop
+            - Put the selected network on monitor mode
+            - Scan for networks
+            - Add networks and clients into target array.
         """
+        if 'wifi' not in self.mongo_document:
+            return  # Wait for the user to choose a wifi.
 
-        while 'wifi' not in self.mongo_document:
-            time.sleep(10)
-
-        with Airmon(self.mongo_document['wifi']) as mon:
-            self.update({'$set': {'monitor': mon.interface}})
-            with Airodump(mon.interface) as air:
-                while self.do_run:
-                    time.sleep(10)
-                    self.set({'tree': air.tree})
-
-        self.teardown()
+        # Get monitor interface
+        with pyrcrack.Airmon(self.mongo_document['wifi']) as mon:
+            self.update({'$set': {'monitor': mon.moniface}})
+            with pyrcrack.Airodump(mon.moniface) as air:
+                for result in air.results:
+                    self.update({'$set': result})
 
 
 def run():

@@ -16,7 +16,6 @@
 """
 
 from flask import Flask, request, render_template
-from flask_socketio import SocketIO
 from bson.json_util import dumps
 from bson import ObjectId
 from redis import Redis
@@ -26,7 +25,6 @@ import pymongo
 import logging
 
 APP = Flask(__name__)
-SOCKETIO = SocketIO(APP)
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(name=__name__)
 MONGOCLIENT = pymongo.MongoClient()
@@ -92,4 +90,4 @@ def main():
         Main
     """
 
-    APP.run(host='0.0.0.0', port='8080', message_queue="redis://")
+    APP.run(host='0.0.0.0', port=8080, debug=True)
