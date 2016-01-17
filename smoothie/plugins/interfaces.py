@@ -23,6 +23,6 @@ class Interfaces(SmoothiePlugin):
             self.stop()
 
 
-def run():
+def interfaces():
     """ main """
     return str(Interfaces())

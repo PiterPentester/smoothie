@@ -1,7 +1,4 @@
 #!/usr/bin/env python3.4
-from smoothie.plugins.interfaces import run as interfaces
-from smoothie.plugins.list_networks import run as list_networks
-from smoothie.plugins.target_network import run as target_network
 from rq import use_connection, get_current_job
 from flask_socketio import SocketIO
 from bson import ObjectId
@@ -16,7 +13,7 @@ use_connection()
 
 MONGOCLIENT = pymongo.MongoClient()
 DB = MONGOCLIENT.smoothie.attacks
-SOCKETIO = SocketIO(message_queue='redis://')
+SOCKETIO = SocketIO(message_queue='redis://localhost:6379/')
 
 
 class SmoothiePlugin:
@@ -70,7 +67,7 @@ class SmoothiePlugin:
         """
             Forces a $set on the database and puts the data via ws.
         """
-        self.update({'$set', data})
+        self.update({'$set': data})
         SOCKETIO.emit('data', data, namespace="/smoothie")
 
     def run(self):
@@ -98,7 +95,7 @@ class SmoothiePlugin:
         """
             Stops gracefuly
         """
-        self.do_run = False
+        self._do_run = False
 
     def __repr__(self):
         return "{}: {}".format(self.name, self.result)

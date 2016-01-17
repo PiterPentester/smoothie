@@ -33,6 +33,6 @@ class ListNetworks(SmoothiePlugin):
         self.teardown()
 
 
-def run():
+def list_networks():
     """ main """
     return str(ListNetworks())

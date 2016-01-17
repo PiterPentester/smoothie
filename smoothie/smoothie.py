@@ -26,7 +26,7 @@ import pymongo
 import logging
 
 APP = Flask(__name__)
-SOCKETIO = SocketIO(APP)
+SOCKETIO = SocketIO(APP, message_queue="redis://localhost:6379/")
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(name=__name__)
 MONGOCLIENT = pymongo.MongoClient()
@@ -39,20 +39,20 @@ def index():
     return render_template("index.html")
 
 
-@APP.route('/start_plugin/<plugin>/<mongo_id>', methods=["POST"])
-def create(plugin, mongo_id):
+@APP.route('/start_plugin/<plug>/<mongo_id>', methods=["POST"])
+def create(plug, mongo_id):
     """
-        .. http:post:: /create/(str:plugin)
+        .. http:post:: /create/(str:plug)
 
-        Create a plugin task for a specific attack.
+        Create a plug task for a specific attack.
         This will add to the redis queue a job for
-        a specific smoothie plugin.
-        Mongodb ID will be accesible to the plugin in
+        a specific smoothie plug.
+        Mongodb ID will be accesible to the plug in
         meta['mongo_id'] (wich SHOULD be the ID of
         a current working attack)
     """
     DB.update({'_id': ObjectId(mongo_id)}, {'$set': dict(request.form)})
-    job = RQ_QUEUE.enqueue_call(func="smoothie.plugins.{}".format(plugin),
+    job = RQ_QUEUE.enqueue_call(func="smoothie.plugins.{p}.{p}".format(p=plug),
                                 timeout=60 * 60 * 60)
     job.meta['mongo_id'] = mongo_id
     job.save()
@@ -92,4 +92,4 @@ def main():
         Main
     """
 
-    APP.run(host='0.0.0.0', port='8080', message_queue="redis://")
+    APP.run(host='0.0.0.0', port='8080')

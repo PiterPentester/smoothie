@@ -66,40 +66,15 @@
                     <th>ESSID</th>
                     <th>BSSID</th>
                 </thead>
-                <tbody data-bind="foreach: aps">
-                    <tr data-bind="click: $parent.select, attr: {'data-bssid': $data.bssid }">
-                        <td data-bind="text: $data.power"></td>
-                        <td data-bind="text: $data.essid"></td>
-                        <td data-bind="text: $data.bssid"></td>
+                <tbody data-bind="foreach: tree">
+                    <tr data-bind="click: $parent.select, attr: {'data-target': JSON.stringify($data) }">
+                        <td data-bind="text: $data.Power"></td>
+                        <td data-bind="text: $data.ESSID"></td>
+                        <td data-bind="text: $data.BSSID"></td>
                     </tr>
                 </tbody>
             </table>
-
-            <h3 class="text-info text-center"> Clients </h3>
-            <table class="table table-stripped table-noborder">
-                <thead>
-                    <th>Power</th>
-                    <th>ESSID</th>
-                    <th>BSSID</th>
-                </thead>
-                <tbody data-bind="foreach: clients">
-                    <tr data-bind="click: $parent.select, attr: {'data-bssid': $data.bssid }">
-                        <td data-bind="text: $data.power"></td>
-                        <td data-bind="text: $data.ssid"></td>
-                        <td data-bind="text: $data.bssid"></td>
-                    </tr>
-                </tbody>
-            </table>
-
         </section>
-        <section class="page1 section" data-bind="with: SummaryModel" data-index=1>
-            <h1 class="text-center"> Target data summary </h1> <hr/>
-            <img data-bind="attr:{'src': target_tree_image}">
-        </section>
-
-
-
-
     </div>
   </body>
 </html>

@@ -1,16 +1,14 @@
 function Targets() {
     var self = this;
-    self.aps = ko.observable();
-    self.clients = ko.observable();
+    self.tree = ko.observable();
     self.update = function() {
         if(window.current_data){
-            self.aps(window.current_data['aps']);
-            self.clients(window.current_data['clients']);
+            self.tree(window.current_data['tree']);
         }
     }
     self.select = function(that, evt) {
         $.post('/data/' + window.attack_id,
-               {'target': $(evt.target.parentNode).data('bssid')},
+               {'target': JSON.parse($(evt.target.parentNode).data('target'))},
                function(){
                    $('.main').moveDown();
                     $.post('/start_plugin/target_network/' + window.attack_id);
