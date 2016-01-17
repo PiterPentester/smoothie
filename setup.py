@@ -16,7 +16,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'rq', 'flask', 'redis', 'pymongo',
-    'pydot_modern', 'pyrcrack'
+    'pydot_modern', 'pyrcrack', 'flask-socketio'
 ]
 
 test_requirements = []

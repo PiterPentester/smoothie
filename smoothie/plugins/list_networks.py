@@ -28,7 +28,7 @@ class ListNetworks(SmoothiePlugin):
             with Airodump(mon.interface) as air:
                 while self.do_run:
                     time.sleep(10)
-                    self.update({'$set': {'tree': air.tree}})
+                    self.set({'tree': air.tree})
 
         self.teardown()
 

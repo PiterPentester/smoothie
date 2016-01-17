@@ -19,7 +19,7 @@ class Interfaces(SmoothiePlugin):
 
             ifaces = [a for a in Wireless().interfaces()
                       if not blacklisted(a)]
-            self.update({'$set': {'wifi_list': ifaces}})
+            self.set({'wifi_list': ifaces})
             self.stop()
 
 

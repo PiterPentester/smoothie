@@ -1,21 +1,25 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3.4
 from smoothie.plugins.interfaces import run as interfaces
 from smoothie.plugins.list_networks import run as list_networks
 from smoothie.plugins.target_network import run as target_network
 from rq import use_connection, get_current_job
+from flask_socketio import SocketIO
 from bson import ObjectId
+import eventlet
 import pymongo
 import inspect
 import time
 import os
 
-MONGOCLIENT = pymongo.MongoClient()
-DB = MONGOCLIENT.smoothie.attacks
-
+eventlet.monkey_patch()
 use_connection()
 
+MONGOCLIENT = pymongo.MongoClient()
+DB = MONGOCLIENT.smoothie.attacks
+SOCKETIO = SocketIO(message_queue='redis://')
 
-class SmoothiePlugin(object):
+
+class SmoothiePlugin:
     """
         Base plugin.
         This leaves us with basic mongo manipulation, handles
@@ -62,6 +66,13 @@ class SmoothiePlugin(object):
         """
         return DB.update({'_id': self.mongo_id}, query)
 
+    def set(self, data):
+        """
+            Forces a $set on the database and puts the data via ws.
+        """
+        self.update({'$set', data})
+        SOCKETIO.emit('data', data, namespace="/smoothie")
+
     def run(self):
         """
             Main loop
@@ -91,4 +102,3 @@ class SmoothiePlugin(object):
 
     def __repr__(self):
         return "{}: {}".format(self.name, self.result)
-
