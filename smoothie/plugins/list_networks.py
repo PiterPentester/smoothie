@@ -13,13 +13,7 @@ import time
 
 class ListNetworks(SmoothiePlugin):
     """
-        List networks.
-        This plugin:
-            - Puts the selected network interface in monitor mode
-            - Retrieves the monitor interface
-            - Starts an analysis with airodump-ng in channel hoping
-              mode
-            - Teardown clears interface and kills airodump
+        Handle airmon and airodump using pyrcrack to set a target tree in mongo
     """
     def run(self):
         """
