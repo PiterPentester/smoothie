@@ -8,10 +8,11 @@
 from smoothie.plugins import SmoothiePlugin
 from pyrcrack.management import Airmon
 from pyrcrack.scanning import Airodump
+from contextlib import suppress
 import time
 
 
-class ListNetworks(SmoothiePlugin):
+class AirodumpPlugin(SmoothiePlugin):
     """
         Handle airmon and airodump using pyrcrack to set a target tree in mongo
     """
@@ -25,7 +26,10 @@ class ListNetworks(SmoothiePlugin):
 
         with Airmon(self.mongo_document['wifi']) as mon:
             self.update({'$set': {'monitor': mon.interface}})
-            with Airodump(mon.interface) as air:
+            kwargs = {}
+            with suppress(KeyError):
+                kwargs = self.mongo_document['plugin_data']['airodump']
+            with Airodump(mon.interface, **kwargs) as air:
                 while self.do_run:
                     time.sleep(10)
                     self.set({'tree': air.tree})
@@ -33,6 +37,6 @@ class ListNetworks(SmoothiePlugin):
         self.teardown()
 
 
-def list_networks():
+def airodump():
     """ main """
-    return str(ListNetworks())
+    return str(AirodumpPlugin())

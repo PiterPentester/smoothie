@@ -91,7 +91,7 @@ function start_ko(){
         TargetsModel: new Targets(),
         ButtonsModel: [
              new PluginButton('', 'General Attack', function(){ $('.main').moveDown(); }),
-             new PluginButton('list_networks', 'Directed Attack', function(){ $('.main').moveDown(); }),
+             new PluginButton('airodump', 'Directed Attack', function(){ $('.main').moveDown(); }),
         ],
         SummaryModel: new Summary()
     };
