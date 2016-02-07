@@ -99,3 +99,49 @@ class SmoothiePlugin:
 
     def __repr__(self):
         return "{}: {}".format(self.name, self.result)
+
+
+class GenericAircrackPlugin(SmoothiePlugin):
+    """
+        Handle generic aircrack-ng plugins
+    """
+
+    _cls = False
+    _module = False
+
+    @property
+    def _class(self, interface, **kwargs):
+        """
+            Maaagic.
+        """
+        return getattr(
+            importlib.import_module('pyrcrack.{}').format(self._module),
+            self._cls)(interface, **kwargs)
+
+    def execute(self, mon=False):
+        """
+            Execue
+        """
+        kwargs = {}
+        with suppress(KeyError):
+            kwargs = self.mongo_document['plugin_data'][self._cls]
+
+        with self._class(mon.interface, **kwargs) as run:
+            while self.do_run:
+                time.sleep(10)
+                self.set({self._cls: run.results})
+
+    def run(self):
+        """
+            Main loop
+        """
+
+        while 'wifi' not in self.mongo_document:
+            time.sleep(10)
+        if "where" not in self.mongo_document:
+            with Airmon(self.mongo_document['wifi']) as mon:
+                self.execute(mon)
+        else:
+            self.execute(self.mongo_document['where'])
+
+        self.teardown()

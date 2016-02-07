@@ -41,7 +41,7 @@ setup(
     license="ISCL",
     entry_points={
         'console_scripts': [
-            'smoothie=smoothie.smoothie:main',
+            'smoothie=smoothie:main',
         ],
     },
     zip_safe=False,
