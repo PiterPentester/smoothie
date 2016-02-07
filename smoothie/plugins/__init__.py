@@ -1,7 +1,10 @@
 #!/usr/bin/env python3.4
 from rq import use_connection, get_current_job
+from pyrcrack.management import Airmon
 from flask_socketio import SocketIO
+from contextlib import suppress
 from bson import ObjectId
+import importlib
 import eventlet
 import pymongo
 import inspect
@@ -13,7 +16,7 @@ use_connection()
 
 MONGOCLIENT = pymongo.MongoClient()
 DB = MONGOCLIENT.smoothie.attacks
-SOCKETIO = SocketIO(message_queue='redis://localhost:6379/')
+#SOCKETIO = SocketIO(message_queue='redis://localhost:6379/')
 
 
 class SmoothiePlugin:
@@ -68,7 +71,7 @@ class SmoothiePlugin:
             Forces a $set on the database and puts the data via ws.
         """
         self.update({'$set': data})
-        SOCKETIO.emit('data', data, namespace="/smoothie")
+        #SOCKETIO.emit('data', data, namespace="/smoothie")
 
     def run(self):
         """
