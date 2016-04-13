@@ -14,7 +14,7 @@ $(document).ready(function(){
        direction: "vertical"
     });
 
-    $.post('/data', {'data': JSON.stringify({'tree': {}, 'plugins': {}})}, function(data){
+    $.post('/data', {'data': JSON.stringify({'tree': {}, 'plugins': {}, 'attack_list': ['aireplay']})}, function(data){
         window.attack_id = data;
 
         setInterval(function(){

@@ -58,7 +58,6 @@
 
         <section class="page3 section" data-bind="with: TargetsModel" data-index=1>
             <h1 class="text-center"> Choose a target </h1> <hr/>
-
             <h3 class="text-info text-center"> Access Points </h3>
             <table style="margin-bottom:30px" class="table table-stripped table-noborder">
                 <thead>
@@ -75,6 +74,20 @@
                 </tbody>
             </table>
         </section>
+
+        <section class="page1 section" data-index=1  data-bind="with: AttacksModel">
+            <h1 class="text-center"> Select an attack </h1>
+            <hr>
+            <div data-bind="foreach: attack_list">
+                <div class="col col-md12 text-center">
+                    <button class="btn btn-primary btn-lg lead h1"
+                            data-bind="text: $data, 
+                                       attr: {'data-plugin': $data},
+                                       click: $parent.select"></button>
+                </div>
+            </div>
+        </section>
+
     </div>
   </body>
 </html>

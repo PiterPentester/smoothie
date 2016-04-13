@@ -3,15 +3,22 @@ function Targets() {
     self.tree = ko.observable();
     self.update = function() {
         if(window.current_data){
-            self.tree(window.current_data['tree']);
+            final_data = [];
+            jQuery.each(window.current_data['tree'], function(key){
+                dat = window.current_data['tree'][key];
+                dat['bssid'] = key;
+                final_data.push(dat);
+            });
+            self.tree(final_data);
+            window.pollas = final_data;
         }
     }
     self.select = function(that, evt) {
         $.post('/data/' + window.attack_id,
-               {'target': JSON.parse($(evt.target.parentNode).data('target'))},
+               {'target': JSON.stringify($(evt.target.parentNode).data('target'))},
                function(){
                    $('.main').moveDown();
-                    $.post('/start_plugin/target_network/' + window.attack_id);
+                   // We'll select the attack later.
                });
     }
 
@@ -36,6 +43,21 @@ function WifiCards() {
                function(){
                    $('.main').moveDown();
                })
+    }
+}
+
+function Attacks() {
+    var self = this;
+    self.attack_list = ko.observableArray([]);
+    self.update = function(atid) {
+        if(window.current_data && 'attack_list' in window.current_data && window.current_data['attack_list'] != []){
+            self.attack_list(window.current_data['attack_list']);
+            clearInterval(atid);
+        }
+    }
+    self.select = function(that, evt) {
+            plugin = $(evt.target.parentNode).data('plugin');
+            $.post('/start_plugin/' + plugin + "/" + window.attack_id, status_);
     }
 }
 
@@ -89,6 +111,7 @@ function start_ko(){
     MainModel = {
         WifiCardsModel: new WifiCards(),
         TargetsModel: new Targets(),
+        AttacksModel: new Attacks(),
         ButtonsModel: [
              new PluginButton('', 'General Attack', function(){ $('.main').moveDown(); }),
              new PluginButton('airodump', 'Directed Attack', function(){ $('.main').moveDown(); }),
@@ -101,3 +124,4 @@ function start_ko(){
     setInterval(function(){MainModel["SummaryModel"].update();}, 1000)
     ko.applyBindings(MainModel)
 }
+
