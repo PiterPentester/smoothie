@@ -5,6 +5,7 @@ import json
 import asyncio
 import aiohttp
 import aiohttp.web
+import aiohttp_jinja2
 import logging
 import rethinkdb as r
 
@@ -32,25 +33,26 @@ async def websocket_handler(request):
     return ws_
 
 
+class Task(aiohttp.web.View):
+    async def get(self):
+        conn = await r.connect()
+        cursor = await r.db(DB_NAME).table(TABLE_NAME)
+        await self.request.GET['task_id']
+        return await
+
+    async def post(self):
+        return await
+
+
+
 async def init(loop):
     """ init """
     app_ = aiohttp.web.Application(loop=loop)
+    aiohttp_jinja2.setup(app_, loader=jinja2.FileSystemLoader('./templates/'))
+    app_.router.add_route('GET', '/ws', View)
     app_.router.add_route('GET', '/', websocket_handler)
     await loop.create_server(app_.make_handler(), '127.0.0.1', 9000)
     return app_
-
-
-async def client():
-    """ Client """
-    session = aiohttp.ClientSession()
-    async with session.ws_connect('http://localhost:9000/') as ws_:
-        async for msg in ws_:
-            LOG.info(msg)
-
-
-def socketclient():
-    """ Client """
-    asyncio.get_event_loop().run_until_complete(client())
 
 
 def socketserver():

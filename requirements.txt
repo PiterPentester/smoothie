@@ -1,2 +1,4 @@
 aiohttp
 rethinkdb==2.2.0.post6
+tqueues
+aiohttp_jinja2
