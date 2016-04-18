@@ -1,2 +1,2 @@
 aiohttp
-rethinkdb
+rethinkdb==2.2.0.post6
