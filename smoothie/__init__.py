@@ -1,3 +1,6 @@
+"""
+    Smoothie
+"""
 import json
 import asyncio
 import aiohttp
@@ -5,9 +8,9 @@ import aiohttp.web
 import logging
 import rethinkdb as r
 
-
 r.set_loop_type("asyncio")
 LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.DEBUG)
 DB_NAME = "smoothie"
 TABLE_NAME = "plugins"
 
@@ -45,13 +48,13 @@ async def client():
             LOG.info(msg)
 
 
-def socketserver():
-    """ Server """
+def socketclient():
+    """ Client """
     asyncio.get_event_loop().run_until_complete(client())
 
 
-def socketclient():
-    """ Client """
+def socketserver():
+    """ Server """
     loop = asyncio.get_event_loop()
     loop.run_until_complete(init(loop))
     loop.run_forever()
