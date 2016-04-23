@@ -4,19 +4,27 @@
 import os
 import json
 import asyncio
-import logging
 import aiohttp
+import importlib
 import aiohttp.web
 import jinja2
 import aiohttp_jinja2
 import rethinkdb as r
+from smoothie.config import DB_NAME, TABLE_NAME, LOG
 
 r.set_loop_type("asyncio")
-LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.DEBUG)
 CURR = os.path.dirname(__file__)
-DB_NAME = "smoothie"
-TABLE_NAME = "plugins"
+
+
+async def execute_plugin(**kwargs):
+    """
+        Runs a plugin
+    """
+    plugin = getattr(importlib.import_module("smoothie.plugins"),
+                     kwargs['plugin'])
+
+    async with plugin(**kwargs) as plugin:
+        plugin.run_forever()
 
 
 async def websocket_handler(request):
@@ -50,14 +58,14 @@ class Task(aiohttp.web.View):
         return aiohttp.web.Response(body='{}')
 
 
-@aiohttp_jinja2.template('index.jinja2')
-def main_handler(request):
-    """ Main page """
-    return {}
-
-
 async def init(loop):
     """ init """
+
+    @aiohttp_jinja2.template('index.jinja2')
+    def main_handler(request):
+        """ Main page """
+        return {}
+
     app_ = aiohttp.web.Application(loop=loop)
     aiohttp_jinja2.setup(app_, loader=jinja2.FileSystemLoader(
         os.path.join(CURR, './templates/')))
